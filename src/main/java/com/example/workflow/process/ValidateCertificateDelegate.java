@@ -45,6 +45,7 @@ public class ValidateCertificateDelegate implements JavaDelegate {
             delegateExecution.setVariable("statusCode",false);
 
         }
+//        delegateExecution.setVariable("validationStatus",results);
 
 //        ValidationResults results = new ValidationResultsImpl();
 //        try {

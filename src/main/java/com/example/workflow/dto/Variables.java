@@ -16,6 +16,6 @@ public class Variables {
     public Authentication authentication;
     public AuthenticationResponse authenticationResponse;
     public BusinessRules businessRules;
-    public ValidationStatus validationStatus;
+    public ValidationResult validationResult;
 
 }

@@ -101,7 +101,7 @@ public class ValidateEnSchematronDelegate implements JavaDelegate {
                     "Unable to execute Business Rules validation ->" + messageCode);
         }
 
-
+//        delegateExecution.setVariable("validationStatus",results);
         LOGGER.info("End EN validation ****************** : {}"+ results);
 
 

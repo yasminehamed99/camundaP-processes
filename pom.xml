@@ -9,6 +9,7 @@
   <version>1.0.0-SNAPSHOT</version>
 
   <properties>
+    <java.version>17.0.5</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>15</maven.compiler.source>
     <maven.compiler.target>15</maven.compiler.target>
@@ -169,6 +170,11 @@
       <artifactId>lombok</artifactId>
       <version>RELEASE</version>
       <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.owlike</groupId>
+      <artifactId>genson</artifactId>
+      <version>1.6</version>
     </dependency>
 
   </dependencies>

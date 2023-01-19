@@ -14,7 +14,7 @@
         <camunda:inputOutput>
           <camunda:inputParameter name="xsd-file">${xsdFile}</camunda:inputParameter>
           <camunda:inputParameter name="decoded-invoice">${decodedInvoice}</camunda:inputParameter>
-          <camunda:outputParameter name="validation-status">${validationStatus}</camunda:outputParameter>
+          <camunda:outputParameter name="validation-result">${validationResult}</camunda:outputParameter>
         </camunda:inputOutput>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_1qzvb8r</bpmn:incoming>
@@ -28,7 +28,6 @@
 </camunda:inputParameter>
           <camunda:inputParameter name="language">${language}</camunda:inputParameter>
           <camunda:inputParameter name="decoded-invoice">${decodedInvoice}</camunda:inputParameter>
-          <camunda:outputParameter name="validation-status">${validationStatus}</camunda:outputParameter>
         </camunda:inputOutput>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_125usom</bpmn:incoming>
@@ -84,8 +83,8 @@
       <bpmn:extensionElements>
         <camunda:inputOutput>
           <camunda:inputParameter name="decoded-invoice">${decodedInvoice}</camunda:inputParameter>
-          <camunda:outputParameter name="xml-path" />
-          <camunda:outputParameter name="invoice-dom" />
+          <camunda:outputParameter name="xml-path">${xmlPath}</camunda:outputParameter>
+          <camunda:outputParameter name="invoice-dom">${invoiceDom}</camunda:outputParameter>
         </camunda:inputOutput>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_0aaksux</bpmn:incoming>

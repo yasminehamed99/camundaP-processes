@@ -37,10 +37,10 @@ public class DomBuilderDelegate implements JavaDelegate {
             DocumentBuilder db = dbf.newDocumentBuilder();
             InputSource is = new InputSource(new StringReader(invoice));
             Document doc = db.parse(is);
-//            delegateExecution.setVariable("invoiceDom",doc);
+            delegateExecution.setVariable("invoiceDom",doc);
             XPathFactory xPathfactory = XPathFactory.newInstance();
             XPath xpath = xPathfactory.newXPath();
-//            delegateExecution.setVariable("xmlPath",xpath);
+            delegateExecution.setVariable("xmlPath",xpath.toString());
 
         } catch (SAXException | IOException e) {
             LOGGER.info("Exception : {} : " + e.getMessage());

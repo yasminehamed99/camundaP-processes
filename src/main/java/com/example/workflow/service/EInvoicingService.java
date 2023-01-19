@@ -10,11 +10,13 @@ import com.example.workflow.exceptions.ProcessException;
 import com.example.workflow.exceptions.ProcessManager;
 import com.example.workflow.validation.ProcessInputImpl;
 import com.example.workflow.validation.ValidationResults;
+import com.example.workflow.validation.ValidationResultsImpl;
 import com.example.workflow.validation.ValidationStatus;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.owlike.genson.Genson;
 import org.apache.commons.lang3.StringUtils;
 import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.history.HistoricVariableInstance;
@@ -24,7 +26,7 @@ import org.camunda.connect.httpclient.HttpRequest;
 import org.camunda.connect.httpclient.HttpResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -136,7 +138,7 @@ public class EInvoicingService {
         return eInvoicingResult;
     }
 
-    public HttpResponse clear(String invoice, String invoiceHash, String language, String authenticationCertificate, String uuid, String certificateAuthResponse) throws ProcessException, JsonProcessingException {
+    public EInvoicingClearanceResult clear(String invoice, String invoiceHash, String language, String authenticationCertificate, String uuid, String certificateAuthResponse) throws ProcessException, JsonProcessingException {
         ObjectWriter objectWriter = new ObjectMapper().writer().withDefaultPrettyPrinter();
         Certificate certificate = new Certificate();
 //        EInvoicingClearanceResult eInvoicingResult=new EInvoicingClearanceResult();
@@ -153,25 +155,47 @@ public class EInvoicingService {
         Authentication authentication = new Authentication("authorization", "String");
         AuthenticationResponse authenticationResponse = new AuthenticationResponse("certificateAuthResponse", "String");
         BusinessRules businessRules = new BusinessRules("EN_16931", "String");
-        com.example.workflow.dto.ValidationStatus validationStatus = new com.example.workflow.dto.ValidationStatus("", "String");
+        ValidationResult validationResult =new ValidationResult("a","String");
 
-        Variables variables = new Variables(certificate, xsdFile, inv, lang, enRules, authentication, authenticationResponse, businessRules, validationStatus);
+        Variables variables = new Variables(certificate, xsdFile, inv, lang, enRules, authentication, authenticationResponse, businessRules,validationResult);
         Root root = new Root(variables);
         String requestBody = objectWriter.writeValueAsString(root);
-        HttpConnector http = Connectors.getConnector(HttpConnector.ID);
-        HttpRequest request = http.createRequest();
-        request.post()
-                .url("http://localhost:8080/engine-rest/process-definition/key/Process_1uq3zpi/start")
-                .payload(requestBody)
-                .header("Content-Type", "application/json");
-        HttpResponse httpResponse = request.execute();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Root> entity = new HttpEntity<Root>(root,headers);
+        RestTemplate restTemplate=new RestTemplate();
+        String url
+                = "http://localhost:8080/engine-rest/process-definition/key/Process_1uq3zpi/start";
+        ResponseEntity<String> personResultAsJsonStr = restTemplate.postForEntity(url, entity, String.class);
+
+//        HttpConnector http = Connectors.getConnector(HttpConnector.ID);
+//        HttpRequest request = http.createRequest();
+//        request.post()
+//                .url("https://camunda.agiletz.com/engine-rest/process-definition/key/Process_1uq3zpi/start")
+//                .payload(requestBody)
+//                .header("Content-Type", "application/json");
+//        HttpResponse httpResponse = request.execute();
+
+
         Gson g = new Gson();
-        ResonseData s = g.fromJson(httpResponse.getResponse(), ResonseData.class);
+        ResonseData s = g.fromJson(personResultAsJsonStr.getBody(), ResonseData.class);
+        System.out.println(s.id);
         List<HistoricVariableInstance> historicVariableInstances = historyService.createHistoricVariableInstanceQuery().processInstanceId(s.getId()).list();
-        System.out.println(historicVariableInstances.get(6).getName() + " " + historicVariableInstances.get(6).getValue());
+
+        Genson genson = new Genson.Builder().useClassMetadata(true).create();
+        ValidationResults validationResults= genson.deserialize((String) historicVariableInstances.get(2).getValue(), ValidationResults.class);
+        EInvoicingClearanceResult eInvoicingResult = new EInvoicingClearanceResult();
+        eInvoicingResult.setValidationResults(validationResults);
+        if(ValidationStatus.ERROR.equals(eInvoicingResult.getValidationResults().getStatus())) {
+            eInvoicingResult.setClearanceStatus(ClearanceStatus.NOT_CLEARED);
+        } else {
+            eInvoicingResult.setClearanceStatus(ClearanceStatus.CLEARED);
+//
+        }
+        return eInvoicingResult;
 
 
-        return httpResponse;
+//        return httpResponse;
     }
 
     public AbstractMap.SimpleEntry<String, CertificateAuthResponse> authenticateV2(String authentication) {

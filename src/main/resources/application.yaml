@@ -1,6 +1,7 @@
 camunda.bpm.admin-user:
-  id: admin
-  password: admin
+  id: yasmin
+  password: P@$$_@g!Le&8
+
 
 spring:
   datasource:
@@ -30,3 +31,7 @@ certificate:
     url: http://localhost:8011/core/csids/auth
     v2:
       url: http://localhost:8012/core/auth/
+
+
+
+

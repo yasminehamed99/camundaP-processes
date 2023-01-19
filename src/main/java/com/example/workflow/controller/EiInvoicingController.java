@@ -54,30 +54,50 @@ public class EiInvoicingController {
 
 
     @PostMapping(value = "/clearence")
-    public HttpResponse clear(@RequestBody ReportingRequestBodyDTO body,
+    public ResponseEntity<EInvoicingClearanceResult> clear(@RequestBody ReportingRequestBodyDTO body,
                                                            @RequestHeader(value = "Accept-Language", required = false) String language,
                                                            @RequestHeader(value = "Authorization", required = false) String authorization,
                                                            @RequestHeader(value = "Accept-Version", required = false) String acceptedVersion) throws IOException, ProcessException {
 
 
-//        //check request
-//        boolean isAPIV2 = false;
-//        if (StringUtils.isNotBlank(acceptedVersion) && acceptedVersion.equalsIgnoreCase("V2")) {
-//            isAPIV2 = true;
+//        try {
+//            //check request
+//            boolean isAPIV2 = false;
+//            if (StringUtils.isNotBlank(acceptedVersion) && acceptedVersion.equalsIgnoreCase("V2")) {
+//                isAPIV2 = true;
 //
-//        }
-//        else {
-//            throw new CustomVersionException("This Version is not supported or not provided in the header.");
-//        }
-//        EInvoicingClearanceResult eInvoicingResult = validateRequest(body, language, isAPIV2);
-//        if(ClearanceStatus.NOT_CLEARED.equals(eInvoicingResult.getClearanceStatus())) {
-//            return new ResponseEntity<>(eInvoicingResult, HttpStatus.BAD_REQUEST);
-//        }
-        HttpResponse httpResponse= eInvoicingService.clear(body.getInvoice(), body.getInvoiceHash(), language, "valid", body.getUuid(), "certificateAuthResponse");
-        return httpResponse;
+//            } else {
+//                throw new CustomVersionException("This Version is not supported or not provided in the header.");
+//            }
+//            EInvoicingClearanceResult eInvoicingResult = validateRequest(body, language, isAPIV2);
+//            if (ClearanceStatus.NOT_CLEARED.equals(eInvoicingResult.getClearanceStatus())) {
+//                return new ResponseEntity<>(eInvoicingResult, HttpStatus.BAD_REQUEST);
+//            }
+        //start process
+        try {
+            EInvoicingClearanceResult eInvoicingResult = eInvoicingService.clear(body.getInvoice(), body.getInvoiceHash(), language, "valid", body.getUuid(), "certificateAuthResponse");
+            if (ERROR.equals(eInvoicingResult.getValidationResults().getStatus())) {
+                return new ResponseEntity<>(eInvoicingResult, HttpStatus.BAD_REQUEST);
+            }
+            if (WARNING.equals(eInvoicingResult.getValidationResults().getStatus())) {
+                return new ResponseEntity<>(eInvoicingResult, HttpStatus.ACCEPTED);
+            }
+            return new ResponseEntity<>(eInvoicingResult, HttpStatus.OK);
+        } catch (ProcessException processException) {
+            EInvoicingClearanceResult eInvoicingResult = new EInvoicingClearanceResult();
+            ValidationResultsImpl validationResultsImpl = new ValidationResultsImpl();
+            validationResultsImpl.addErrorMessage(processException.getCategory(), processException.getCode(), processException.getMessage());
+            eInvoicingResult.setValidationResults(validationResultsImpl);
+            eInvoicingResult.setClearanceStatus(ClearanceStatus.NOT_CLEARED);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(eInvoicingResult);
+        }
+    }
+
+
+//        return httpResponse;
 
 //
-//        //start process
+
 //
 //        ObjectWriter objectWriter = new ObjectMapper().writer().withDefaultPrettyPrinter();
 //        Certificate certificate = new Certificate();
@@ -144,7 +164,6 @@ public class EiInvoicingController {
 ////            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(eInvoicingResult);
 ////        }
 
-}
     @PostMapping(value = "/reporting")
     public ResponseEntity<EInvoicingReportingResult> report(@RequestBody ReportingRequestBodyDTO body,
                                                             @RequestHeader("Accept-Language") String language,
